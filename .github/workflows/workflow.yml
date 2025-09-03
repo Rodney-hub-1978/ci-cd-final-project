@@ -32,16 +32,17 @@ jobs:
           pip install flake8 yamllint pytest pytest-cov
 
       - name: Lint YAML files
-        run: yamllint .
+        run: |
+          yamllint .github/workflows/
+          yamllint .
 
       - name: Lint with flake8
         run: |
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 . --count --max-complexity=10 --max-line-length=127 --statistics
+          flake8 app --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 app --count --max-complexity=10 --max-line-length=127 --statistics
 
       - name: Run unit tests with pytest
-        run: |
-          pytest -v --cov=. --cov-report=term-missing
+        run: pytest -v --cov=app --cov-report=term-missing tests/
 
       # Optional: Upload coverage report
       # - name: Upload coverage to Codecov
