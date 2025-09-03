@@ -2,9 +2,9 @@ name: CI workflow
 
 on:
   push:
-    branches: [ main ]
+    branches: ["main"]
   pull_request:
-    branches: [ main ]
+    branches: ["main"]
 
 jobs:
   build:
@@ -15,17 +15,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install flake8 nose
+          # Using pytest instead of nose
+          pip install flake8 yamllint pytest pytest-cov
+
+      - name: Lint YAML files
+        run: yamllint .github/workflows/
 
       - name: Lint with flake8
         run: |
-          flake8 service --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 service --count --max-complexity=10 --max-line-length=127 --statistics
+          # Changed from 'service' to 'app'
+          flake8 app --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 app --count --max-complexity=10 --max-line-length=127 --statistics
 
-      - name: Run unit tests with nose
-        run: nosetests -v --with-spec --spec-color --with-coverage --cover-package=service
+      - name: Run unit tests with pytest
+        run: |
+          # Using pytest instead of nose, covering the 'app' package
+          pytest -v --cov=app --cov-report=term-missing tests/
 
+      # Optional: Upload coverage report
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
