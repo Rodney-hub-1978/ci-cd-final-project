@@ -1,0 +1,45 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: test-pipeline-run
+spec:
+  pipelineSpec:
+    workspaces:
+      - name: shared-data
+    tasks:
+      - name: cleanup-workspace
+        taskRef:
+          name: cleanup
+        workspaces:
+          - name: source
+            workspace: shared-data
+
+      - name: fetch-repo
+        taskRef:
+          name: git-clone
+        runAfter: [cleanup-workspace]   # ✅ cleanup runs first
+        workspaces:
+          - name: output
+            workspace: shared-data
+        params:
+          - name: url
+            value: https://github.com/Rodney-hub-1978/ci-cd-final-project.git
+          - name: revision
+            value: main
+          - name: gitConfig
+            value: |
+              safe.directory=/workspace/output   # ✅ Fix dubious ownership
+
+      - name: run-nose
+        taskRef:
+          name: nose
+        runAfter: [fetch-repo]
+        workspaces:
+          - name: source
+            workspace: shared-data
+
+  workspaces:
+    - name: shared-data
+      persistentVolumeClaim:
+        claimName: oc-lab-pvc   # ✅ keep PVC for persistence across tasks
+
