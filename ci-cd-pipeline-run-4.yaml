@@ -1,0 +1,14 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: ci-cd-pipeline-run-4
+spec:
+  pipelineRef:
+    name: ci-cd-pipeline
+  workspaces:
+    - name: source
+      emptyDir: {}   # Using an ephemeral workspace to mount your project
+  params:
+    - name: IMAGE
+      value: docker.io/yourusername/myimage:latest
+  # Optional: you can use a git-clone step instead if your code is in a repo

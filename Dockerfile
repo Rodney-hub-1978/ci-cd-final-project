@@ -1,22 +1,19 @@
-FROM python:3.9-slim
+# Use an official Python runtime as a parent image
+FROM python:3.11-slim
 
-# Establish a working folder
+# Set working directory inside the container
 WORKDIR /app
 
-# Establish dependencies
+# Copy requirements file and install dependencies
 COPY requirements.txt .
-RUN python -m pip install -U pip wheel && \
-    pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source files last because they change the most
-COPY service ./service
+# Copy the rest of the application code
+COPY . .
 
-# Become non-root user
-RUN useradd -m -r service && \
-    chown -R service:service /app
-USER service
+# Expose the port your app runs on
+EXPOSE 5000
 
-# Run the service on port 8000
-ENV PORT 8000
-EXPOSE $PORT
-CMD ["gunicorn", "service:app", "--bind", "0.0.0.0:8000"]
+# Run the app
+CMD ["python", "app.py"]
+
