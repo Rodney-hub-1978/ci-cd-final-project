@@ -81,3 +81,26 @@ spec:
         - "--destination=$(params.IMAGE)"
         - "--insecure"
 
+---
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy
+spec:
+  description: Deploy the application to the OpenShift cluster
+  params:
+    - name: app-name
+      type: string
+      description: The name of the application to deploy
+    - name: build-image
+      type: string
+      description: The built image to deploy
+  steps:
+    - name: oc-deploy
+      image: quay.io/openshift/origin-cli:latest
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+        echo "Deploying application $(params.app-name) with image $(params.build-image) ..."
+        oc create deployment $(params.app-name) --image=$(params.build-image) --dry-run=client -o yaml | oc apply -f -
